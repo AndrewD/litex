@@ -332,6 +332,24 @@ def generate_dts(d, initrd_start=None, initrd_size=None, initrd=None, root_devic
     usb_ohci_mem_base  = d["memories"]["usb_ohci_ctrl"]["base"],
     usb_ohci_interrupt = "" if polling else "interrupts = <{}>;".format(16)) # FIXME
 
+    # CTU CAN FD -----------------------------------------------------------------------------------
+    for i in range(10):
+        name =f"ctu_can_fd{i}"
+        if name in d["memories"]:
+            dts += """
+            {ctu_can_fd_name}: ctu_can_fd@{ctu_can_fd_mem_base:x} {{
+                compatible = "ctu,ctucanfd";
+                reg = <0x{ctu_can_fd_mem_base:x} 0x10000>;
+                clocks = <{ctu_can_fd_clk}>;
+                {ctu_can_fd_interrupt}
+                status = "okay";
+            }};
+""".format(
+    ctu_can_fd_name  = name,
+    ctu_can_fd_mem_base  = d["memories"][name]["base"],
+    ctu_can_fd_clk = "&sys_clk",
+    ctu_can_fd_interrupt = "" if polling else "interrupts = <{}>;".format(d["constants"][f"{name}_interrupt"]))
+
     # SPI Flash ------------------------------------------------------------------------------------
 
     if "spiflash" in d["csr_bases"]:
